@@ -1,0 +1,10 @@
+🛠️ Components Needed
+Arduino Uno
+
+HC-SR04 Ultrasonic Sensor
+
+Servo Motor (e.g., SG90)
+
+I2C 16x2 LCD Display (Using I2C saves pins!)
+
+Breadboard and Jumper wires
