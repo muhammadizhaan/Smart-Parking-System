@@ -1,0 +1,86 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Servo.h>
+
+// Initialize LCD (Address 0x27 is common, some use 0x3F)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Initialize Servo
+Servo gateServo;
+
+// Define Pins
+const int trigPin = 9;
+const int echoPin = 10;
+const int servoPin = 11;
+
+// Variables
+long duration;
+int distance;
+const int detectionDistance = 10; // Distance in cm to trigger the gate
+
+void setup() {
+  // Pin modes
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  // Attach servo and set to locked position (0 degrees)
+  gateServo.attach(servoPin);
+  gateServo.write(0); 
+  
+  // Initialize LCD
+  lcd.init();
+  lcd.backlight();
+  
+  // Welcome Message
+  lcd.setCursor(0, 0);
+  lcd.print(" Smart Parking ");
+  lcd.setCursor(0, 1);
+  lcd.print("   System IDLE  ");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  // Clear the trigPin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  
+  // Trigger the sensor by sending a 10us high pulse
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  // Read the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+  
+  // Calculate the distance in cm
+  distance = duration * 0.034 / 2;
+  
+  // Check if a car is detected
+  if (distance > 0 && distance <= detectionDistance) {
+    // Car detected! Update LCD
+    lcd.setCursor(0, 0);
+    lcd.print("Car Detected!   ");
+    lcd.setCursor(0, 1);
+    lcd.print("Opening Gate... ");
+    
+    // Open the gate (90 degrees)
+    gateServo.write(90);
+    delay(3000); // Keep gate open for 3 seconds
+    
+    // Close the gate
+    lcd.setCursor(0, 1);
+    lcd.print("Closing Gate... ");
+    gateServo.write(0);
+    delay(1000);
+    lcd.clear();
+  } else {
+    // No car detected
+    lcd.setCursor(0, 0);
+    lcd.print("Slot Status:    ");
+    lcd.setCursor(0, 1);
+    lcd.print("   AVAILABLE    ");
+  }
+  
+  delay(200); // Small delay to stabilize readings
+}
